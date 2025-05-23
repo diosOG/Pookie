@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>🎀</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      font-family: 'Segoe Script', cursive;
+      overflow: hidden; /* disables all scrolling */
+      height: 100vh;
+    }
+
+    video.background-video {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      object-fit: cover;
+      z-index: -1;
+      background: #000;
+    }
+
+    .floating-message, .emoji {
+      position: absolute;
+      font-size: 1.4em;
+      color: #ff6699;
+      cursor: pointer;
+      animation: float linear infinite;
+      white-space: nowrap;
+      user-select: none;
+      pointer-events: auto;
+      will-change: transform, opacity;
+    }
+
+    @keyframes float {
+      0% {
+        transform: translateY(100vh) translateX(0);
+        opacity: 0;
+      }
+      50% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-100vh) translateX(50px);
+        opacity: 0;
+      }
+    }
+
+    @keyframes heartPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+    }
+
+    @keyframes lovePop {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+      }
+      50% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.5);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1);
+      }
+    }
+
+    .heart-animation {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      font-size: 2em;
+      animation: heartPulse 2s infinite;
+      color: #ff3366;
+      z-index: 2;
+      user-select: none;
+    }
+
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      height: 100vh;
+      gap: 20px;
+      padding: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .message-box {
+      background: linear-gradient(135deg, #fff, #ffd6e7);
+      border-radius: 15px;
+      box-shadow: 0 8px 16px rgba(255, 105, 180, 0.3);
+      padding: 20px;
+      width: 200px;
+      height: 150px;
+      text-align: center;
+      font-size: 1.1em;
+      transition: transform 0.3s, background 0.3s;
+      position: relative;
+      user-select: none;
+      cursor: pointer;
+    }
+
+    .message-box:hover {
+      transform: scale(1.05);
+      background: linear-gradient(135deg, #ffe6f0, #ffcce0);
+    }
+
+    .love-effect {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2em;
+      opacity: 0;
+      animation: lovePop 1s forwards;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .music-player {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 2;
+    }
+
+    .music-player button {
+      background-color: #ff99cc;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      box-shadow: 0 4px 8px rgba(255, 105, 180, 0.4);
+      font-size: 18px;
+      cursor: pointer;
+      transition: transform 0.3s, background 0.3s;
+      user-select: none;
+    }
+
+    .music-player button:hover {
+      transform: scale(1.1);
+      background-color: #ffb3d9;
+    }
+
+    .tooltip {
+      position: absolute;
+      background-color: #ffe0f0;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.9em;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+      z-index: 3;
+      user-select: none;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+
+  <video class="background-video" id="romanticMusic" autoplay loop preload="metadata" poster="poster.jpg">
+    <source src="teranaina.mp4" type="video/mp4" />
+  </video>
+
+  <script>
+    const messages = [
+      "You're my sunshine 🌞",
+      "Haramiiiii 💖",
+      "My heart beats for you 💓",
+      "💘",
+      "🌸",
+      "💌",
+      "🥰",
+      "💝",
+      "Gandu 💑",
+      "Bestie 💗",
+      "Cutie 💕",
+      "💐",
+      "💕",
+      "💞"
+    ];
+
+    const usedPositions = [];
+    const maxAttempts = 20;
+    const maxMessagesToShow = 10;
+
+    function generateUniquePosition() {
+      let top, left;
+      const safeDistance = 8;
+      let tries = 0;
+      let isSafe = false;
+
+      while (!isSafe && tries < maxAttempts) {
+        top = Math.random() * 80;
+        left = Math.random() * 90;
+        isSafe = usedPositions.every(pos =>
+          Math.abs(pos.top - top) > safeDistance && Math.abs(pos.left - left) > safeDistance
+        );
+        tries++;
+      }
+      if (!isSafe) {
+        top = Math.random() * 80;
+        left = Math.random() * 90;
+      }
+      usedPositions.push({ top, left });
+      return { top, left };
+    }
+
+    function createFloatingMessages() {
+      const limitedMessages = messages.slice(0, maxMessagesToShow);
+      limitedMessages.forEach((msg) => {
+        const div = document.createElement('div');
+        const emojiRegex = /\p{Emoji}/u;
+        div.className = emojiRegex.test(msg) ? 'emoji' : 'floating-message';
+        div.innerText = msg;
+        const position = generateUniquePosition();
+        div.style.top = position.top + '%';
+        div.style.left = position.left + '%';
+        div.style.animationDuration = (8 + Math.random() * 5) + 's';
+        div.onclick = () => showTooltip(div, msg);
+        document.body.appendChild(div);
+      });
+    }
+
+    createFloatingMessages();
+  </script>
+
+  <div class="heart-animation">💗</div>
+  <div id="tooltip" class="tooltip"></div>
+
+  <div class="container">
+    <div class="message-box" onclick="triggerLoveEffect(this, 'You make me so happy!')">You're sweeter than a cupcake with extra sprinkles! 🧁</div>
+    <div class="message-box" onclick="triggerLoveEffect(this, 'Together is my favorite place!')">A big hug and a smile for you! 🤗</div>
+    <div class="message-box" onclick="triggerLoveEffect(this, 'You are the best part of my day!')">Missing You a lot ❤️</div>
+    <div class="message-box" onclick="triggerLoveEffect(this, 'Our love is endless!')">Endless love for you cutie 💗</div>
+  </div>
+
+  <div class="music-player">
+    <button aria-label="Play music" onclick="document.getElementById('romanticMusic').muted = false; document.getElementById('romanticMusic').play()">▶️</button>
+    <button aria-label="Pause music" onclick="document.getElementById('romanticMusic').pause()">⏸️</button>
+  </div>
+
+  <script>
+    const tooltip = document.getElementById('tooltip');
+
+    function showTooltip(element, message) {
+      tooltip.textContent = message;
+      const rect = element.getBoundingClientRect();
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+      tooltip.style.top = `${rect.top + scrollTop - 40}px`;
+      tooltip.style.left = `${rect.left + scrollLeft + rect.width / 2}px`;
+      tooltip.style.opacity = 1;
+      setTimeout(() => {
+        tooltip.style.opacity = 0;
+      }, 2000);
+    }
+
+    function triggerLoveEffect(element, message) {
+      const loveSpan = document.createElement('span');
+      loveSpan.className = 'love-effect';
+      loveSpan.innerText = '💖';
+      element.appendChild(loveSpan);
+      setTimeout(() => {
+        loveSpan.remove();
+      }, 1000);
+      showTooltip(element, message);
+    }
+  </script>
+
+</body>
+</html>
